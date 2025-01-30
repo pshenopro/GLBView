@@ -69,7 +69,7 @@ export class Viewer {
 				options.preset === Preset.ASSET_GENERATOR
 					? environments.find((e) => e.id === 'footprint-court').name
 					: environments[1].name,
-			background: false,
+			background: true,
 			playbackSpeed: 1.0,
 			actionStates: {},
 			camera: DEFAULT_CAMERA,
@@ -79,14 +79,14 @@ export class Viewer {
 			autoRotate: false,
 
 			// Lights
-			punctualLights: true,
+			punctualLights: false,
 			exposure: 0.0,
-			toneMapping: LinearToneMapping,
+			toneMapping: 1,
 			ambientIntensity: 0.3,
 			ambientColor: '#FFFFFF',
 			directIntensity: 0.8 * Math.PI, // TODO(#116)
 			directColor: '#FFFFFF',
-			bgColor: '#191919',
+			bgColor: '#F1F3F8',
 
 			pointSize: 1.0,
 		};
@@ -109,7 +109,7 @@ export class Viewer {
 		this.scene.add(this.defaultCamera);
 
 		this.renderer = window.renderer = new WebGLRenderer({ antialias: true });
-		this.renderer.setClearColor(0xcccccc);
+		// this.renderer.setClearColor(0xffffff);
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(el.clientWidth, el.clientHeight);
 
@@ -310,7 +310,7 @@ export class Viewer {
 
 		this.content.traverse((node) => {
 			if (node.isLight) {
-				let light= undefined
+				let light = undefined
 
 				try {
 					if (node.isSpotLight) {
@@ -345,7 +345,7 @@ export class Viewer {
 
 		this.setClips(clips);
 
-		this.updateLights();
+		// this.updateLights();
 		this.updateGUI();
 		this.updateEnvironment();
 		this.updateDisplay();
@@ -408,16 +408,16 @@ export class Viewer {
 		const lights = this.lights;
 
 		if (state.punctualLights && !lights.length) {
-			this.addLights();
+			// this.addLights();
 		} else if (!state.punctualLights && lights.length) {
 			// this.removeLights();
 		}
 
-		// this.renderer.toneMapping = Number(state.toneMapping);
-		// this.renderer.toneMappingExposure = Math.pow(2, state.exposure);
+		this.renderer.toneMapping = Number(state.toneMapping);
+		this.renderer.toneMappingExposure = Math.pow(2, state.exposure);
 
-		this.renderer.toneMapping = 1.4;
-		this.renderer.toneMappingExposure = Math.pow(2, -6);
+		// this.renderer.toneMapping = 1.4;
+		// this.renderer.toneMappingExposure = Math.pow(2, -6);
 
 		// if (lights.length === 2) {
 		// 	lights[0].intensity = state.ambientIntensity;
@@ -462,7 +462,8 @@ export class Viewer {
 
 		this.getCubeMapTexture(environment).then(({ envMap }) => {
 			this.scene.environment = envMap;
-			this.scene.background = this.state.background ? envMap : this.backgroundColor;
+			this.scene.background = new Color('#F1F3F8');
+			// this.scene.background = this.state.background ? envMap : this.backgroundColor;
 		});
 	}
 
@@ -599,12 +600,11 @@ export class Viewer {
 			'environment',
 			environments.map((env) => env.name),
 		);
+
 		envMapCtrl.onChange(() => this.updateEnvironment());
+		
 		[
-			lightFolder.add(this.state, 'toneMapping', {
-				Linear: LinearToneMapping,
-				'ACES Filmic': ACESFilmicToneMapping,
-			}),
+			lightFolder.add(this.state, 'toneMapping', -10, 10, 0.01),
 			lightFolder.add(this.state, 'exposure', -10, 10, 0.01),
 			lightFolder.add(this.state, 'punctualLights').listen(),
 			lightFolder.add(this.state, 'ambientIntensity', 0, 2),
